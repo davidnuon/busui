@@ -1,0 +1,132 @@
+#!/usr/bin/env python
+
+import sys
+import os
+
+script = sys.argv[1]
+
+
+def decode(program):
+	out = []
+	for idx in range(0, len(program)):
+		out.append( (program[idx], idx) )
+
+	return out
+
+def process(l):
+	return l.strip().split(' ')
+
+with open(script) as f:
+	buffy = f.read()
+
+buffy = buffy.strip().split('\n')
+buffy = filter(lambda x : len(x) > 0, buffy)
+buffy = map(process, buffy)
+
+mem = {
+	'PC' : 0,
+	'STACK': []
+}
+
+program = decode(buffy)
+running = True
+
+def do_done(mem, ins):
+	return False
+
+def do_print(mem, ins):
+	message_words = ins[1:]
+	message = []
+	for word in message_words:
+		if word.startswith('$'):
+			var = word.replace('$', '')
+			if var in mem:
+				message.append(str(mem[var]))
+			else:
+				message.append(word)
+		else:
+			message.append(word)
+
+	print " ".join(message)
+	mem['PC'] += 1
+	return True
+
+def do_set(mem, ins):
+	var = ins[1]
+	data = ins[2]
+
+	mem[var] = int(data)
+	mem['PC'] += 1
+	return True
+
+def do_start_loop(mem, ins):
+	stack_empty = len(mem['STACK']) == 0
+	seen = False
+
+	var = ins[1]
+	pc = mem['PC']
+	loop_start = (var, pc)
+	
+	if not stack_empty:
+		last = mem['STACK'][-1]
+		seen = last[0] == var
+	
+	if not seen: 
+		mem['STACK'].append( loop_start )
+
+	mem['PC'] += 1	
+	
+	return True
+
+def do_end_loop(mem, ins):
+	last = mem['STACK'][-1]
+	var = last[0]
+	old_pc = last[1]
+	out = True
+	new_pc = mem['PC'] + 1
+
+	if mem[var] == 0:
+		mem['STACK'].pop()
+	else:
+		new_pc = old_pc
+	
+	mem['PC'] = new_pc
+	return True
+
+def do_dec(mem, ins):
+	var = ins[1]
+	mem[var] -= 1	
+	mem['PC'] += 1
+
+	return True
+
+
+def do_inc(mem, ins):
+	var = ins[1]
+	mem[var] += 1	
+	mem['PC'] += 1
+
+	return True
+
+def do_noop(mem, ins):
+	mem['PC'] += 1
+	return True
+
+decode_map = {
+	'done' : do_done,
+	'set' : do_set,
+	'loop' : do_start_loop,
+	'endLoop' : do_end_loop,
+	'print' : do_print,
+	'dec' : do_dec,
+	'inc' : do_inc
+}
+
+while running:
+	pc = mem['PC']
+	ins = program[pc][0]
+	command = ins[0]
+	running = decode_map[command](mem, ins)
+
+for k in mem:
+	print "%-10s: %s " % (k, mem[k])

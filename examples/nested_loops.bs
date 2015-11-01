@@ -1,0 +1,15 @@
+set a 10
+loop a
+   set b 5
+   loop b 
+      set c 2
+      loop c
+         print $a $b $c
+	 print
+         dec c 
+      endLoop
+      dec b 
+   endLoop
+   dec a
+endLoop
+done
