@@ -1,4 +1,6 @@
 # Busui (無粋)
+&copy; David Nuon
+
 A toy scripting language that's ~~kinda~~ very ugly. Written to demonstrate how an interpreter works.
 
 ## DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE 
