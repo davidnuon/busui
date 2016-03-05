@@ -1,0 +1,4 @@
+print Hello World
+fizzbuzz 10
+rect 10 10
+done
